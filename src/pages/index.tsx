@@ -14,7 +14,6 @@ import axios from "axios";
 
 export default function Home() {
   const router = useRouter();
-  const [todoId, setTodoId] = useState();
 
   // Fetch Todo
   const getTodo = async () => {
@@ -41,10 +40,10 @@ export default function Home() {
   });
 
   // delete todo
-  const deleteMutation = async (id : string) => {
-    const res = await axios.delete(`/api/todo/${id}`)
-    return res.data
-  }
+  const deleteMutation = async (id: string) => {
+    const res = await axios.delete(`/api/todo/${id}`);
+    return res.data;
+  };
   return (
     <>
       <Head>
@@ -90,49 +89,68 @@ export default function Home() {
           ) : (
             <div>
               {todoQueryResult.data?.map((todo: any, index: number) => (
-                <Card key={index} className="justify-between px-4 py-5">
-                  <p className="text-lg font-medium">{todo.name}</p>
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => {
-                        // setTodoId()
-                        // formik.setFieldValue()
-                        router.push("/?update_todo=true");
-                      }}
-                      className="px-2 bg-transparent border-none"
+                <>
+                  <Card key={index} className="justify-between px-4 py-5">
+                    <p className="text-lg font-medium">{todo.name}</p>
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => {
+                          // setTodoId()
+                          // formik.setFieldValue()
+                          router.push("/?update_todo=true");
+                        }}
+                        className="px-2 bg-transparent border-none"
+                      >
+                        <Edit size={15} />
+                      </button>
+                      <button
+                        onClick={() => deleteMutation(todo._id)}
+                        className="px-2 bg-transparent border-none"
+                      >
+                        <Trash size={15} />
+                      </button>
+                    </div>
+                  </Card>
+                  {router.query.update_todo && (
+                    <Dialog
+                      variant="scroll"
+                      open={false}
+                      onClose={() => router.back()}
                     >
-                      <Edit size={15} />
-                    </button>
-                    <button 
-                    onClick={() => deleteMutation(todo._id)}
-                    className="px-2 bg-transparent border-none">
-                      <Trash size={15} />
-                    </button>
-                  </div>
-                </Card>
+                      <div className="px-4 py-6">
+                        <h1 className="text-2xl font-semibold">Edit Todo</h1>
+                        <InputField
+                          label=""
+                          placeholder="Add todo"
+                          id="name"
+                          error={!!formik?.touched.name && !!formik.errors.name}
+                          helperText={
+                            !!formik?.touched?.name && formik?.errors?.name
+                          }
+                          inputProps={{
+                            value: formik.values.name,
+                            onChange: formik?.handleChange("name"),
+                            onBlur: formik?.handleBlur("name"),
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-center py-2">
+                        <button
+                          type="submit"
+                          onClick={() => formik.handleSubmit()}
+                          className="inline-flex cursor-pointer justify-center items-center text-[13px] font-semibold gap-1 px-3 py-2 rounded-lg leading-[24px] bg-gray-900 text-white"
+                        >
+                          Edit Todo
+                        </button>
+                      </div>
+                    </Dialog>
+                  )}
+                </>
               ))}
             </div>
           )}
         </div>
       </div>
-      {router.query.update_todo && (
-        <Dialog variant="scroll" open={false} onClose={() => router.back()}>
-          <div className="px-4">
-            <InputField
-              label=""
-              placeholder="Add todo"
-              id="name"
-              error={!!formik?.touched.name && !!formik.errors.name}
-              helperText={!!formik?.touched?.name && formik?.errors?.name}
-              inputProps={{
-                value: formik.values.name,
-                onChange: formik?.handleChange("name"),
-                onBlur: formik?.handleBlur("name"),
-              }}
-            />
-          </div>
-        </Dialog>
-      )}
     </>
   );
 }

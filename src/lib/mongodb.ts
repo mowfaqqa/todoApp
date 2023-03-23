@@ -1,7 +1,7 @@
 import { Db, MongoClient } from "mongodb";
 
-const MONGODB_URI = process.env.MONGO_URI
-const MONGODB_DB = process.env.DB_NAME;
+const MONGODB_URI = "mongodb+srv://muwaffaq:DefaultPa55@todo.il2oeyb.mongodb.net/Todo-App?retryWrites=true&w=majority"
+const MONGODB_DB = "Todo-App";
 
 // check the mongo URI
 if (!MONGODB_URI) {
