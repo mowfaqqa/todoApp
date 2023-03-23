@@ -3,27 +3,6 @@ const ObjectId = require('mongodb').ObjectId
 import { NextApiRequest, NextApiResponse } from "next";
 
 // CONTROLLERS
-
-// //get single todo
-// const getTodos = async (req: any, res: NextApiResponse) => {
-//     try {
-//         const { id: todoId } = req.params;
-//        // connect to the database
-//        let { db } = await connectToDatabase();
-//        const todos = await db.collection('todos').find({}).toArray()
-    
-//        return res.json({
-//         message: todos,
-//         success: true
-//        })
-//     } catch (error : any) {
-//        // return the error
-//        return res.json({
-//         message: new Error(error).message,
-//         success: false,
-//     });
-//     }
-//     }
 // update todo
 const updateTodo = async (req: any, res: NextApiResponse) => {
     try {
