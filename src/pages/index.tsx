@@ -1,11 +1,50 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import Card from "@/components/Card";
+import { InputField } from "@/components/InputField";
+import { useFormik } from "formik";
+import Head from "next/head";
+import Image from "next/image";
+import { Edit, Trash } from "react-feather";
+import { useMutation, useQuery } from "react-query";
+import * as yup from "yup";
+import { httpsClient } from "../lib/httpClient";
+import { useRouter } from "next/router";
+import Dialog from "@/components/Modal";
+import { useState } from "react";
+import axios from "axios";
 
 export default function Home() {
+  const router = useRouter();
+  const [todoId, setTodoId] = useState();
+
+  // Fetch Todo
+  const getTodo = async () => {
+    const res = await axios.get("/api/todos");
+    return res.data.message;
+  };
+  const todoQueryResult = useQuery(["TODOS"], getTodo);
+
+  // create Todo
+  const createTodoMutation = async (data: any) => {
+    const res = await axios.post("/api/todos", data);
+    return res.data;
+  };
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+    },
+    validationSchema: yup.object({
+      name: yup.string().required().label("Todo"),
+    }),
+    onSubmit: (values) => {
+      createTodoMutation(values);
+    },
+  });
+
+  // delete todo
+  const deleteMutation = async (id : string) => {
+    const res = await axios.delete(`/api/todo/${id}`)
+    return res.data
+  }
   return (
     <>
       <Head>
@@ -14,110 +53,100 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
+      <div className="bg-gray-100 h-screen">
+        <div className="max-w-[700px] mx-auto px-30 pt-10 mb-8">
+          <div className="bg-light bg-white shadow-md p-4">
+            <h1 className="text-3xl font-semibold text-center py-3">
+              TODO APP
+            </h1>
+            <div>
+              <InputField
+                label=""
+                placeholder="Add todo"
+                id="name"
+                error={!!formik?.touched.name && !!formik.errors.name}
+                helperText={!!formik?.touched?.name && formik?.errors?.name}
+                inputProps={{
+                  value: formik.values.name,
+                  onChange: formik?.handleChange("name"),
+                  onBlur: formik?.handleBlur("name"),
+                }}
               />
-            </a>
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  onClick={() => formik.handleSubmit()}
+                  className="inline-flex cursor-pointer justify-center items-center text-[13px] font-semibold gap-1 px-3 py-2 rounded-lg leading-[24px] bg-gray-900 text-white"
+                >
+                  Add Todo
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
+        <div className="max-w-[700px] mx-auto px-30">
+          {todoQueryResult.data?.length < 1 ? (
+            "Nothing on todo list"
+          ) : (
+            <div>
+              {todoQueryResult.data?.map((todo: any, index: number) => (
+                <Card key={index} className="justify-between px-4 py-5">
+                  <p className="text-lg font-medium">{todo.name}</p>
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => {
+                        // setTodoId()
+                        // formik.setFieldValue()
+                        router.push("/?update_todo=true");
+                      }}
+                      className="px-2 bg-transparent border-none"
+                    >
+                      <Edit size={15} />
+                    </button>
+                    <button 
+                    onClick={() => deleteMutation(todo._id)}
+                    className="px-2 bg-transparent border-none">
+                      <Trash size={15} />
+                    </button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      {router.query.update_todo && (
+        <Dialog variant="scroll" open={false} onClose={() => router.back()}>
+          <div className="px-4">
+            <InputField
+              label=""
+              placeholder="Add todo"
+              id="name"
+              error={!!formik?.touched.name && !!formik.errors.name}
+              helperText={!!formik?.touched?.name && formik?.errors?.name}
+              inputProps={{
+                value: formik.values.name,
+                onChange: formik?.handleChange("name"),
+                onBlur: formik?.handleBlur("name"),
+              }}
             />
           </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+        </Dialog>
+      )}
     </>
-  )
+  );
+}
+
+export async function getServerSideProps(ctx: any) {
+  let dev = process.env.NODE_ENV !== "production";
+  let { DEV_URL, PROD_URL } = process.env;
+
+  let response = await fetch(`${dev ? DEV_URL : PROD_URL}/api/todos`);
+
+  let data = await response.json();
+  return {
+    props: {
+      todos: data["message"],
+    },
+  };
 }
